@@ -2,35 +2,35 @@ var Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678
 // 34
 var BitMapFormat = 
 {
-	bfType : 0x02,				// 总是BM
-	bfSize : 0x04,				// BMP图像文件的大小
-	bfReserved : 0x04,			// 总为0，本该是bfReserved1和bfReserved2
-	bfOffBits : 0x04,			// BMP图像数据的地址
+    bfType : 0x02,                // 总是BM
+    bfSize : 0x04,                // BMP图像文件的大小
+    bfReserved : 0x04,            // 总为0，本该是bfReserved1和bfReserved2
+    bfOffBits : 0x04,            // BMP图像数据的地址
 
-	biSize : 0x04,				// 本结构的大小，根据不同的操作系统而不同，在Windows中，此字段的值总为28h字节=40字节
-	biWidth : 0x04,			    // BMP图像的宽度，单位像素
-	biHeight : 0x04,			// 总为0
-	biPlanes : 0x02,			// 总为0
-	biBitCount : 0x02,			// BMP图像的色深，即一个像素用多少位表示，常见有1、4、8、16、24和32，分别对应单色、16色、256色、16位高彩色、24位真彩色和32位增强型真彩色
-	biCompression : 0x04,		// 压缩方式，0表示不压缩，1表示RLE8压缩，2表示RLE4压缩，3表示每个像素值由指定的掩码决定
-	biSizeImage : 0x04,		    // BMP图像数据大小，必须是4的倍数，图像数据大小不是4的倍数时用0填充补足
-	biXPelsPerMeter : 0x04,	    // 水平分辨率，单位像素/m
-	biYPelsPerMeter : 0x04,	    // 垂直分辨率，单位像素/m
-	biClrUsed : 0x04,			// BMP图像使用的颜色，0表示使用全部颜色，对于256色位图来说，此值为100h=256
-	biClrImportant : 0x04		// 重要的颜色数，此值为0时所有颜色都重要，对于使用调色板的BMP图像来说，当显卡不能够显示所有颜色时，此值将辅助驱动程序显示颜色
+    biSize : 0x04,                // 本结构的大小，根据不同的操作系统而不同，在Windows中，此字段的值总为28h字节=40字节
+    biWidth : 0x04,                // BMP图像的宽度，单位像素
+    biHeight : 0x04,            // 总为0
+    biPlanes : 0x02,            // 总为0
+    biBitCount : 0x02,            // BMP图像的色深，即一个像素用多少位表示，常见有1、4、8、16、24和32，分别对应单色、16色、256色、16位高彩色、24位真彩色和32位增强型真彩色
+    biCompression : 0x04,        // 压缩方式，0表示不压缩，1表示RLE8压缩，2表示RLE4压缩，3表示每个像素值由指定的掩码决定
+    biSizeImage : 0x04,            // BMP图像数据大小，必须是4的倍数，图像数据大小不是4的倍数时用0填充补足
+    biXPelsPerMeter : 0x04,        // 水平分辨率，单位像素/m
+    biYPelsPerMeter : 0x04,        // 垂直分辨率，单位像素/m
+    biClrUsed : 0x04,            // BMP图像使用的颜色，0表示使用全部颜色，对于256色位图来说，此值为100h=256
+    biClrImportant : 0x04        // 重要的颜色数，此值为0时所有颜色都重要，对于使用调色板的BMP图像来说，当显卡不能够显示所有颜色时，此值将辅助驱动程序显示颜色
 };
 
 // rebuild bitmap format, add 'offset' and 'length' attributes
 function ReBuildBitMapFormat()
 {
-	var i = 0x00;
-	var attr;
-	for (attr in BitMapFormat)
-	{
-		var val = { offset : i, length : BitMapFormat[attr] };
-		i += val.length;
-		BitMapFormat[attr] = val;
-	}
+    var i = 0x00;
+    var attr;
+    for (attr in BitMapFormat)
+    {
+        var val = { offset : i, length : BitMapFormat[attr] };
+        i += val.length;
+        BitMapFormat[attr] = val;
+    }
 }
 
 ReBuildBitMapFormat();
@@ -49,7 +49,7 @@ function BitMap()
     var _length_of_header = 0x36;
     // 按4位补齐的加补的字节数
     var _length_to_fit = 0x00;
-	
+    
     this.create = function(width, height, bgcolor)
     {
         this.width = width;
@@ -82,28 +82,28 @@ function BitMap()
         for (var i = 0x00, l = biSizeImage / 0x04; i < l; i++) this.data[i + len] = 0x00;
     }
 
-	var _get_bytes = function(val)
-	{
-		var list = [0x04];
-		for (var i = 0x00; i < 0x04; i++)
-		{
-			list[i] = (val >> (0x08 * (0x03 - i))) & 0xff;
-		}
-		return list;
-	}
+    var _get_bytes = function(val)
+    {
+        var list = [0x04];
+        for (var i = 0x00; i < 0x04; i++)
+        {
+            list[i] = (val >> (0x08 * (0x03 - i))) & 0xff;
+        }
+        return list;
+    }
 
-	this.setBitmapBytes = function(val, idx, length)
-	{
-		for (var i = 0x00; i < length; i++)
-		{
-			var k = idx + i;
+    this.setBitmapBytes = function(val, idx, length)
+    {
+        for (var i = 0x00; i < length; i++)
+        {
+            var k = idx + i;
             var aIdx = parseInt(k / 0x04);
             var bits = (4 - (k % 0x04) - 0x01) * 0x08;
             var hex = (val >> (0x08 * i)) & 0xff;
             this.data[aIdx] &= ~(0xff << bits);
-			this.data[aIdx] |= hex << bits;
-		}
-	}
+            this.data[aIdx] |= hex << bits;
+        }
+    }
 
     // set pixel of (x, y)
     this.setPixel = function(x, y, color)
@@ -123,7 +123,7 @@ function BitMap()
             w = 2
             k = 2
 
-            [01,01] = [02,01] = w * 3 * y + k * y + x * 3
+            [01,01] = [02,01] = w * 3 * y + k * (h - y) + x * 3
 
         ******************************/
         y = this.height - y;
@@ -135,6 +135,12 @@ function BitMap()
     this.getPixel = function(x, y)
     {
         
+    }
+
+    // set header value
+    this.setHeaderValue = function(attr, headerValue)
+    {
+        this.setBitmapBytes(headerValue, attr.offset, attr.length);
     }
 
     this.toBase64 = function()
@@ -160,5 +166,3 @@ function BitMap()
         return datauri.join('');
     }
 }
-
-
