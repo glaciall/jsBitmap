@@ -1,4 +1,3 @@
-
 var Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.split('');
 // 34
 var BitMapFormat = 
@@ -34,29 +33,18 @@ function ReBuildBitMapFormat()
 	}
 }
 
-// convert from little-endian to big-endian or big-endian to little-endian
-function EndianTranscoder(val, length)
-{
-	var data = 0x00;
-	for (var i = 0x00; i < length; i++)
-	{
-		data |= ((val >> (0x08 * i)) & 0xff) << (0x08 * (length - i - 0x01));
-	}
-	return data;
-}
-
 ReBuildBitMapFormat();
 
 function BitMap()
 {
-	this.data = null;
+    this.data = null;
 
     this.width = 0x00;
     this.height = 0x00;
     var datauri = 'data:image/bmp;base64,'.split('');
 
-	// offset of bitmap data from 'data' array start
-	var _length_of_data = 0x00;
+    // offset of bitmap data from 'data' array start
+    var _length_of_data = 0x00;
     // bytes of headers
     var _length_of_header = 0x36;
     // 按4位补齐的加补的字节数
@@ -148,12 +136,6 @@ function BitMap()
     {
         
     }
-
-	// set header value
-	this.setHeaderValue = function(attr, headerValue)
-	{
-		this.setBitmapBytes(headerValue, attr.offset, attr.length);
-	}
 
     this.toBase64 = function()
     {
