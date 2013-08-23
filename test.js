@@ -15,4 +15,9 @@ for (var i = 0; i < 300; i++) bitmap.setPixel(300 - i, i, 0xff0000);
 // 需要基于浏览器测试
 var img = new Image();
 img.src = bitmap.toBase64();
+img.onload = function()
+{
+	time = new Date().getTime();
+	alert('Spend: ' + time + 'ms');
+}
 document.body.appendChild(img);
