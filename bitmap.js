@@ -1,4 +1,8 @@
+
 var Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.split('');
+var CharIdxArray = { };
+for (var i = 0; i < Base64Chars.length; i++) CharIdxArray[Base64Chars[i]] = i;
+
 // 34
 var BitMapFormat = 
 {
@@ -50,6 +54,11 @@ function BitMap()
     // 按4位补齐的加补的字节数
     var _length_to_fit = 0x00;
     
+    this.toString = function()
+    {
+        return 'Length Of Data: ' + _length_of_data;
+    }
+    
     this.create = function(width, height, bgcolor)
     {
         this.width = width;
@@ -82,16 +91,6 @@ function BitMap()
         for (var i = 0x00, l = biSizeImage / 0x04; i < l; i++) this.data[i + len] = 0x00;
     }
 
-    var _get_bytes = function(val)
-    {
-        var list = [0x04];
-        for (var i = 0x00; i < 0x04; i++)
-        {
-            list[i] = (val >> (0x08 * (0x03 - i))) & 0xff;
-        }
-        return list;
-    }
-
     this.setBitmapBytes = function(val, idx, length)
     {
         for (var i = 0x00; i < length; i++)
@@ -104,8 +103,22 @@ function BitMap()
             this.data[aIdx] |= hex << bits;
         }
     }
+    
+    this.getBitmapBytes = function(idx, length)
+    {
+        var byts = [];
+        for (var i = 0x00; i < length; i++)
+        {
+            var k = idx + i;
+            var aIdx = parseInt(k / 0x04);
+            var bits = (4 - (k % 0x04) - 0x01) * 0x08;
+            var hex = (this.data[aIdx] >> bits) & 0xff;
+            byts[byts.length] = hex;
+        }
+        return byts;
+    }
 
-    // set pixel of (x, y)
+    // 设置
     this.setPixel = function(x, y, color)
     {
         /******************************
@@ -131,17 +144,21 @@ function BitMap()
         this.setBitmapBytes(color, offset, 0x03);
     }
 
-    // get pixel of (x, y)
+    // 获取(X, Y)位置的RGB值
     this.getPixel = function(x, y)
     {
-        
+        y = this.height - y;
+        var offset = (this.width * 3 * y + _length_to_fit * y + x * 3) + _length_of_header;
+        return this.getBitmapBytes(offset, 3).reverse();
     }
 
-    // set header value
+    // 设置BMP头信息
     this.setHeaderValue = function(attr, headerValue)
     {
         this.setBitmapBytes(headerValue, attr.offset, attr.length);
     }
+    
+    // 获取BMP头信息
 
     this.toBase64 = function()
     {
@@ -164,5 +181,34 @@ function BitMap()
         for (var i = Math.ceil(len / 3 * 4); i < l; i++) datauri[i + 22] = '=';
 
         return datauri.join('');
+    }
+    
+    this.fromBase64 = function(text)
+    {
+        var k = 0;
+        var bin = 0x00;
+        var last = 0x00;
+        this.data = new Array(text.length / 4);
+        for (var i = 0, l = text.length; i < l; i++)
+        {
+	        bin = CharIdxArray[text.charAt(i)];
+	        var f = i % 4;
+	        var m = (f + 1) * 2;
+	        var x = 8 - m;
+	        if (f == 0)
+	        {
+	            // k++;
+		        last = bin;
+		        continue;
+	        }
+            if (bin == null) continue;
+	        var chr = ((last & (0x3f >> (m - 4))) << (m - 2)) | ((bin & (0x3f >> x << x)) >> x);
+	        this.data[parseInt(k / 4)] |= chr << ((3 - k % 4) * 8);
+	        k++;
+	        
+	        last = bin;
+        }
+        
+        _length_of_data = k - _length_of_header;
     }
 }
