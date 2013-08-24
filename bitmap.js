@@ -117,6 +117,17 @@ function BitMap()
         }
         return byts;
     }
+    
+    this.getHeaderValue = function(attr)
+    {
+        var val = 0x00;
+        var byts = this.getBitmapBytes(attr.offset, attr.length);
+        for (var i = 0; i < byts.length; i++)
+        {
+            val |= byts[i] << (i * 8);
+        }
+        return val;
+    }
 
     // 设置
     this.setPixel = function(x, y, color)
@@ -210,5 +221,7 @@ function BitMap()
         }
         
         _length_of_data = k - _length_of_header;
+        this.width = this.getHeaderValue(BitMapFormat.biWidth);
+        this.height = this.getHeaderValue(BitMapFormat.biHeight);
     }
 }
