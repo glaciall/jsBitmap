@@ -3,28 +3,28 @@ var Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678
 var CharIdxArray = { };
 for (var i = 0; i < Base64Chars.length; i++) CharIdxArray[Base64Chars[i]] = i;
 
-// 34
+// 位图头信息结构
 var BitMapFormat = 
 {
-    bfType : 0x02,                // 总是BM
-    bfSize : 0x04,                // BMP图像文件的大小
-    bfReserved : 0x04,            // 总为0，本该是bfReserved1和bfReserved2
-    bfOffBits : 0x04,            // BMP图像数据的地址
+    bfType : 0x02,                  // 总是BM
+    bfSize : 0x04,                  // BMP图像文件的大小
+    bfReserved : 0x04,              // 总为0，本该是bfReserved1和bfReserved2
+    bfOffBits : 0x04,               // BMP图像数据的地址
 
-    biSize : 0x04,                // 本结构的大小，根据不同的操作系统而不同，在Windows中，此字段的值总为28h字节=40字节
-    biWidth : 0x04,                // BMP图像的宽度，单位像素
-    biHeight : 0x04,            // 总为0
-    biPlanes : 0x02,            // 总为0
-    biBitCount : 0x02,            // BMP图像的色深，即一个像素用多少位表示，常见有1、4、8、16、24和32，分别对应单色、16色、256色、16位高彩色、24位真彩色和32位增强型真彩色
-    biCompression : 0x04,        // 压缩方式，0表示不压缩，1表示RLE8压缩，2表示RLE4压缩，3表示每个像素值由指定的掩码决定
-    biSizeImage : 0x04,            // BMP图像数据大小，必须是4的倍数，图像数据大小不是4的倍数时用0填充补足
-    biXPelsPerMeter : 0x04,        // 水平分辨率，单位像素/m
-    biYPelsPerMeter : 0x04,        // 垂直分辨率，单位像素/m
-    biClrUsed : 0x04,            // BMP图像使用的颜色，0表示使用全部颜色，对于256色位图来说，此值为100h=256
-    biClrImportant : 0x04        // 重要的颜色数，此值为0时所有颜色都重要，对于使用调色板的BMP图像来说，当显卡不能够显示所有颜色时，此值将辅助驱动程序显示颜色
+    biSize : 0x04,                  // 本结构的大小，根据不同的操作系统而不同，在Windows中，此字段的值总为28h字节=40字节
+    biWidth : 0x04,                 // BMP图像的宽度，单位像素
+    biHeight : 0x04,                // 总为0
+    biPlanes : 0x02,                // 总为0
+    biBitCount : 0x02,              // BMP图像的色深，即一个像素用多少位表示，常见有1、4、8、16、24和32，分别对应单色、16色、256色、16位高彩色、24位真彩色和32位增强型真彩色
+    biCompression : 0x04,           // 压缩方式，0表示不压缩，1表示RLE8压缩，2表示RLE4压缩，3表示每个像素值由指定的掩码决定
+    biSizeImage : 0x04,             // BMP图像数据大小，必须是4的倍数，图像数据大小不是4的倍数时用0填充补足
+    biXPelsPerMeter : 0x04,         // 水平分辨率，单位像素/m
+    biYPelsPerMeter : 0x04,         // 垂直分辨率，单位像素/m
+    biClrUsed : 0x04,               // BMP图像使用的颜色，0表示使用全部颜色，对于256色位图来说，此值为100h=256
+    biClrImportant : 0x04           // 重要的颜色数，此值为0时所有颜色都重要，对于使用调色板的BMP图像来说，当显卡不能够显示所有颜色时，此值将辅助驱动程序显示颜色
 };
 
-// rebuild bitmap format, add 'offset' and 'length' attributes
+// 处理一下BitmapFormat，给加上offset和length属性
 function ReBuildBitMapFormat()
 {
     var i = 0x00;
@@ -47,11 +47,8 @@ function BitMap()
     this.height = 0x00;
     var datauri = 'data:image/bmp;base64,'.split('');
 
-    // offset of bitmap data from 'data' array start
     var _length_of_data = 0x00;
-    // bytes of headers
     var _length_of_header = 0x36;
-    // 按4位补齐的加补的字节数
     var _length_to_fit = 0x00;
     
     this.create = function(width, height, bgcolor)
@@ -81,8 +78,7 @@ function BitMap()
         this.setHeaderValue(BitMapFormat.biYPelsPerMeter, 0x00);
         this.setHeaderValue(BitMapFormat.biClrUsed, 0x00);
         this.setHeaderValue(BitMapFormat.biClrImportant, 0x00);
-
-        // 初始化数据区
+        
         _length_of_data = biSizeImage;
         for (var y = 0; y < height; y++)
             for (var x = 0; x < width; x++) this.setPixel(x, y, bgcolor);
@@ -136,24 +132,6 @@ function BitMap()
     // 设置(x, y)坐标上的像素值
     this.setPixel = function(x, y, color)
     {
-        /******************************
-
-                      00 01 02 03 04 05 06 07
-                    ---------------------------
-            03 : 00 | 00 00 00 11 11 11 -- --
-            02 : 01 | 22 22 22 33 33 33 -- --
-            01 : 02 | 44 44 44 55 55 55 -- --
-            00 : 03 | ** ** ** ** ** ** -- --
-
-            x = 01
-            y = 03
-            h = 2
-            w = 2
-            k = 2
-
-            [01,01] = [02,01] = w * 3 * y + k * (h - y) + x * 3
-
-        ******************************/
         y = this.height - y -1;
         var offset = (this.width * 3 * y + _length_to_fit * y + x * 3) + _length_of_header;
         this.setBitmapBytes(color, offset, 0x03);
@@ -198,21 +176,21 @@ function BitMap()
         this.data = new Array(text.length / 4);
         for (var i = 0, l = text.length; i < l; i++)
         {
-	        bin = CharIdxArray[text.charAt(i)];
-	        var f = i % 4;
-	        var m = (f + 1) * 2;
-	        var x = 8 - m;
-	        if (f == 0)
-	        {
-		        last = bin;
-		        continue;
-	        }
+            bin = CharIdxArray[text.charAt(i)];
+            var f = i % 4;
+            var m = (f + 1) * 2;
+            var x = 8 - m;
+            if (f == 0)
+            {
+                last = bin;
+                continue;
+            }
             if (bin == null) continue;
-	        var chr = ((last & (0x3f >> (m - 4))) << (m - 2)) | ((bin & (0x3f >> x << x)) >> x);
-	        this.data[parseInt(k / 4)] |= chr << ((3 - k % 4) * 8);
-	        k++;
-	        
-	        last = bin;
+            var chr = ((last & (0x3f >> (m - 4))) << (m - 2)) | ((bin & (0x3f >> x << x)) >> x);
+            this.data[parseInt(k / 4)] |= chr << ((3 - k % 4) * 8);
+            k++;
+            
+            last = bin;
         }
         
         _length_of_data = k - _length_of_header;
