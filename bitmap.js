@@ -56,7 +56,9 @@ function BitMap()
         this.width = width;
         this.height = height;
 
+        // 计算数据区总字节数=(width * byte_per_pixel) * height + height * _length_to_fit
         var biSizeImage = parseInt((width * 24 + 31) / 32) * 4 * height;
+        // 计算每行补了几个字节
         _length_to_fit = biSizeImage / height - (width * 3);
         
         var len = Math.ceil((_length_of_header + biSizeImage) / 0x04);
@@ -80,6 +82,10 @@ function BitMap()
         this.setHeaderValue(BitMapFormat.biClrImportant, 0x00);
         
         _length_of_data = biSizeImage;
+        
+        // 如果初始的背景色为黑色，则不需要为画布染色
+        if (bgcolor == 0x000000) return;
+        
         for (var y = 0; y < height; y++)
             for (var x = 0; x < width; x++) this.setPixel(x, y, bgcolor);
     }
@@ -145,6 +151,7 @@ function BitMap()
         return this.getBitmapBytes(offset, 3).reverse();
     }
 
+    // 获取当前bitmap的datauri串，用于显示或发送到服务器端
     this.toBase64 = function()
     {
         var len = _length_of_data + _length_of_header;
@@ -168,6 +175,7 @@ function BitMap()
         return datauri.join('');
     }
     
+    // 根据给定的BASE64编码的text参数来重建bitmap
     this.fromBase64 = function(text)
     {
         var k = 0;
