@@ -17,7 +17,7 @@ var img = new Image();
 img.src = bitmap.toBase64();
 img.onload = function()
 {
-	time = new Date().getTime();
+	time = new Date().getTime() - time;
 	alert('Spend: ' + time + 'ms');
 }
 document.body.appendChild(img);
