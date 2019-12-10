@@ -3,6 +3,21 @@ jsBitmap
 
 基于Javascript的bitmap处理，并且将位图输出为base64编码以便于浏览器进行显示。
 
+Usage
+========
+```
+import {
+    BitMap,
+} from 'jsBitmap';
+
+export class YourReactClass extends React.PureComponent {
+    constructor(props, ctx) {
+        super(props, ctx);
+        this.bmp = new BitMap();
+        this.bmp.fromBase64(props.base64Bmp.replace(/^data:image\/bmp;base64,/, ''));
+    }
+}
+```
 
 API参考
 ========

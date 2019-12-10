@@ -1,10 +1,9 @@
-
 var Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.split('');
 var CharIdxArray = { };
 for (var i = 0; i < Base64Chars.length; i++) CharIdxArray[Base64Chars[i]] = i;
 
 // 位图头信息结构
-var BitMapFormat = 
+var BitMapFormat =
 {
     bfType : 0x02,                  // 总是BM
     bfSize : 0x04,                  // BMP图像文件的大小
@@ -50,7 +49,7 @@ function BitMap()
     var _length_of_data = 0x00;
     var _length_of_header = 0x36;
     var _length_to_fit = 0x00;
-    
+
     this.create = function(width, height, bgcolor)
     {
         this.width = width;
@@ -60,7 +59,7 @@ function BitMap()
         var biSizeImage = parseInt((width * 24 + 31) / 32) * 4 * height;
         // 计算每行补了几个字节
         _length_to_fit = biSizeImage / height - (width * 3);
-        
+
         var len = Math.ceil((_length_of_header + biSizeImage) / 0x04);
         this.data = new Array(len);
         for (var i = 0x00; i < len; i++) this.data[i] = 0x00;
@@ -80,12 +79,12 @@ function BitMap()
         this.setHeaderValue(BitMapFormat.biYPelsPerMeter, 0x00);
         this.setHeaderValue(BitMapFormat.biClrUsed, 0x00);
         this.setHeaderValue(BitMapFormat.biClrImportant, 0x00);
-        
+
         _length_of_data = biSizeImage;
-        
+
         // 如果初始的背景色为黑色，则不需要为画布染色
         if (bgcolor == 0x000000) return;
-        
+
         for (var y = 0; y < height; y++)
             for (var x = 0; x < width; x++) this.setPixel(x, y, bgcolor);
     }
@@ -102,7 +101,7 @@ function BitMap()
             this.data[aIdx] |= hex << bits;
         }
     }
-    
+
     this.getBitmapBytes = function(idx, length)
     {
         var byts = [];
@@ -116,13 +115,13 @@ function BitMap()
         }
         return byts;
     }
-    
+
     // 设置BMP头信息
     this.setHeaderValue = function(attr, headerValue)
     {
         this.setBitmapBytes(headerValue, attr.offset, attr.length);
     }
-    
+
     // 获取BMP头信息
     this.getHeaderValue = function(attr)
     {
@@ -174,7 +173,7 @@ function BitMap()
 
         return datauri.join('');
     }
-    
+
     // 根据给定的BASE64编码的text参数来重建bitmap
     this.fromBase64 = function(text)
     {
@@ -197,12 +196,16 @@ function BitMap()
             var chr = ((last & (0x3f >> (m - 4))) << (m - 2)) | ((bin & (0x3f >> x << x)) >> x);
             this.data[parseInt(k / 4)] |= chr << ((3 - k % 4) * 8);
             k++;
-            
+
             last = bin;
         }
-        
+
         _length_of_data = k - _length_of_header;
         this.width = this.getHeaderValue(BitMapFormat.biWidth);
         this.height = this.getHeaderValue(BitMapFormat.biHeight);
     }
 }
+
+module.exports = {
+    BitMap,
+};
